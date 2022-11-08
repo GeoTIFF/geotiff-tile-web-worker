@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://unpkg.com/flug"></script>
+    <script src="./index.min.js"></script>
+  </head>
+  <body>
+    <script>
+      process = {
+        env: {
+          TEST_NAME: 'iframe'
+        }
+      }
+    </script>
+    <script>
+      function three_to_four_bands({ tile, height, width }) {
+        const data = new Array(4 * height * width).fill(255);
+        for (let b = 0; b <= 2; b++) {
+          for (let r = 0; r < height; r++) {
+            for (let c = 0; c < width; c++) {
+              data[(r * 4 * width) + (4 * c) + b] = tile[b][r][c];
+            }
+          }
+        }
+        return data;
+      }
+
+      function displayTile({ tile, height, width }) {
+        const data = Uint8ClampedArray.from(tile);
+        const imageData = new ImageData(data, width, height);
+        const canvas = document.createElement("CANVAS");
+        canvas.height = imageData.height;
+        canvas.width = imageData.width;
+        const context = canvas.getContext("2d");
+        context.webkitImageSmoothingEnabled = false;
+        context.mozImageSmoothingEnabled = false;
+        context.imageSmoothingEnabled = false;
+        context.putImageData(imageData, 0, 0);
+        context.webkitImageSmoothingEnabled = false;
+        context.mozImageSmoothingEnabled = false;
+        context.imageSmoothingEnabled = false;
+        document.body.appendChild(canvas);
+        canvas.style.background = "darkred";
+        canvas.style.border = "5px solid chartreuse";
+        canvas.style.margin = "10px";
+        canvas.style.height = "512px";
+      }
+    </script>
+    <script>
+      const PARAMS = {
+        url: "https://storage.googleapis.com/pdd-stac/disasters/hurricane-harvey/0831/20170831_172754_101c_3b_Visual.tif",
+        bbox: [-95.976562, 29.535232, -95.888671, 29.611673],
+        bbox_srs: 4326,
+        debug_level: 0,
+        method: "near",
+        round: false,
+        timed: false,
+        tile_height: 256,
+        tile_layout: "[band][row][column]",
+        tile_width: 256,
+        tile_srs: 3857,
+        use_overview: true
+      };
+
+      test('iframe', async ({ eq }) => {
+        try {
+          const worker = geotiff_tile_web_worker.createWorker({ iframe: true });
+
+          const created = await worker.createTile({ ...PARAMS, timed: false });
+          const { tile, height, width } = created;
+
+          eq(tile[0][0].constructor.name, "Uint8Array");
+          const data = three_to_four_bands({ height, width, tile })
+
+          displayTile({ tile: data, height, width});
+        } catch (error) {
+          throw error;
+        }
+      });
+
+      test('worker.min.js', ({ eq }) => {
+        return new Promise((resolve, reject) => {
+          const worker = new Worker('./worker.min.js');
+          worker.onmessage = (evt) => {
+            const { tile, height, width } = evt.data.data;
+
+            eq(tile[0][0].constructor.name, "Uint8Array");
+            const data = three_to_four_bands({ height, width, tile })
+
+            displayTile({ tile: data, height, width});
+            resolve({ tile: data, height, width });
+          }
+          worker.postMessage({
+            type: "REQUEST_TILE",
+            data: PARAMS
+          });
+        });
+      });
+
+      test('basic usage', async ({ eq }) => {
+        const worker = geotiff_tile_web_worker.createWorker();
+
+        const { tile, height, width } = await worker.createTile({
+          url: "https://storage.googleapis.com/pdd-stac/disasters/hurricane-harvey/0831/20170831_172754_101c_3b_Visual.tif",
+          bbox: [-95.976562, 29.535232, -95.888671, 29.611673],
+          tile_layout: "[band][row][column]",
+          debug_level: 0
+        });
+
+        eq(tile[0][0].constructor.name, "Uint8Array");
+        eq(tile.length, 3);
+        eq(tile[0].length, height);
+        eq(tile[0][0].length, width);
+        const data = three_to_four_bands({ height, width, tile })
+
+        displayTile({ tile: data, height, width});
+      });
+
+      test('createTile', async ({ eq }) => {
+        try {
+          const worker = geotiff_tile_web_worker.createWorker();
+
+          const created = await worker.createTile(PARAMS);
+          const { tile, height, width } = created;
+
+          eq(tile[0][0].constructor.name, "Uint8Array");
+          const data = three_to_four_bands({ height, width, tile })
+
+          displayTile({ tile: data, height, width});
+        } catch (error) {
+          throw error;
+        }
+      });
+
+      test("repeats", async ({ eq }) => {
+        const worker = geotiff_tile_web_worker.createWorker();
+
+        // create first tile to start cache
+        await worker.createTile(PARAMS);
+
+        const created = await Promise.all(new Array(10).fill(0).map(it => worker.createTile({
+          ...PARAMS,
+          timed: true,
+          debug_level: 1
+        })));
+        created.forEach(({ tile, height, width }) => {
+          eq(tile[0][0].constructor.name, "Uint8Array");
+          const data = three_to_four_bands({ height, width, tile })
+
+          displayTile({ tile: data, height, width});
+        });
+
+        window.createRepeatTile = function() {
+          worker.createTile({
+            ...PARAMS,
+            timed: true,
+            debug_level: 1
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
