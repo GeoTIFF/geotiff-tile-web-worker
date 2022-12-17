@@ -14,6 +14,16 @@ function createWorker(options) {
 
   let tileCount = 0;
 
+  const absolutify = (url) => {
+    if (url.startsWith("/")) return location.origin + url;
+
+    if (url.startsWith("./")) {
+      return location.href.split("/").slice(0, -1).join("/") + "/" + url.replace(/^\.\//, "");
+    }
+
+    return url;
+  };
+
   const resolvers = {};
 
   worker.onmessage = function (evt) {
@@ -25,6 +35,9 @@ function createWorker(options) {
 
     const [resolve, reject] = resolvers[id];
 
+    // delete, so we don't accidentally try to call resolve/reject twice
+    delete resolvers[id];
+
     if (type === CREATED_TILE) {
       const { tile, height, width } = data;
       resolve({ tile, height, width });
@@ -33,25 +46,25 @@ function createWorker(options) {
     } else {
       console.error("unknown type " + type);
     }
-  }
+  };
 
-  worker.clearCache = function() {
+  worker.clearCache = function () {
     worker.postMessage({ type: CLEAR_CACHE });
   };
 
-  worker.setMaxCacheSize = function(maxCacheSize) {
+  worker.setMaxCacheSize = function (maxCacheSize) {
     worker.postMessage({
       type: SET_MAX_CACHE_SIZE,
       data: maxCacheSize
     });
   };
 
-  worker.createTile = function(params) {
-    const { debug_level, timeout } = params;
-    if (debug_level >= 1) console.log('[geotiff-tile-web-worker:createTile] starting with:', params);
+  worker.createTile = function (params) {
+    const { debug_level, timeout, url, ...rest } = params;
+    if (debug_level >= 1) console.log("[geotiff-tile-web-worker:createTile] starting with:", params);
 
     const id = Math.pow(Math.random(), Math.random()).toString().substring(2);
-    if (debug_level >= 2) console.log('[geotiff-tile-web-worker:createTile] id:', id);
+    if (debug_level >= 2) console.log("[geotiff-tile-web-worker:createTile] id:", id);
 
     return new Promise(function (resolve, reject) {
       try {
@@ -60,10 +73,11 @@ function createWorker(options) {
           type: REQUEST_TILE,
           data: {
             id,
-            ...params
+            url: absolutify(url),
+            ...rest
           }
         };
-        if (debug_level >= 1) console.log('[geotiff-tile-web-worker:createTile] posting message to worker:', message);
+        if (debug_level >= 1) console.log("[geotiff-tile-web-worker:createTile] posting message to worker:", message);
         worker.postMessage(message);
         if (typeof timeout === "number") setTimeout(() => reject("timeout"), timeout);
       } catch (error) {
@@ -71,13 +85,15 @@ function createWorker(options) {
         reject(error);
       }
     });
-  }
+  };
 
   return worker;
 }
 
 if (typeof define === "function" && define.amd) {
-  define(function() { return { createWorker }; });
+  define(function () {
+    return { createWorker };
+  });
 }
 
 module.exports = { createWorker };

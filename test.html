@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="https://unpkg.com/flug"></script>
+    <script src="./node_modules/flug/index.js"></script>
     <script src="./index.min.js"></script>
   </head>
   <body>
     <script>
       process = {
         env: {
-          TEST_NAME: 'iframe'
+          // TEST_NAME: '[row][column][band]'
         }
       }
     </script>
@@ -49,6 +49,7 @@
     <script>
       const PARAMS = {
         url: "https://storage.googleapis.com/pdd-stac/disasters/hurricane-harvey/0831/20170831_172754_101c_3b_Visual.tif",
+        // url: "./data/20170831_172754_101c_3b_Visual.tiff",
         bbox: [-95.976562, 29.535232, -95.888671, 29.611673],
         bbox_srs: 4326,
         debug_level: 0,
@@ -156,6 +157,28 @@
             timed: true,
             debug_level: 1
           });
+        }
+      });
+
+      test('[row][column][band]', async ({ eq }) => {
+        try {
+          const worker = geotiff_tile_web_worker.createWorker({ iframe: false });
+
+          const created = await worker.createTile({ ...PARAMS, debug_level: 10, tile_layout: "[row][column][band]", timed: true });
+          console.log("created:", created);
+          const { tile, height, width } = created;
+
+          eq(tile[0][0].constructor.name, "Uint8Array");
+          eq(tile.length, height);
+          eq(tile[0].length, width);
+          eq(tile[0][0].length, 3);
+
+
+          const data = tile.map(row => row.map(column => [...column, 255])).flat(2);
+
+          displayTile({ tile: data, height, width});
+        } catch (error) {
+          throw error;
         }
       });
     </script>
