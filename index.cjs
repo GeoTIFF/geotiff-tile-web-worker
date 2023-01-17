@@ -6,6 +6,8 @@ function createWorker(options) {
   const useFrameWorker = typeof options === "object" && options.iframe === true;
   const WebWorker = useFrameWorker === false && typeof Worker === "function" ? Worker : FrameWorker;
   const maxTiles = typeof options === "object" && typeof options.maxTiles === "number" ? options.maxTiles : Infinity;
+  const debugLevel = typeof options === "object" && typeof options.debugLevel === "number" ? options.debugLevel : 0;
+  if (debugLevel >= 1) console.log("[geotiff-tile-web-worker:createWorker] debug level is " + debugLevel);
 
   const blob = new Blob([workerString], { type: "text/javascript" });
   const blobURL = URL.createObjectURL(blob);
@@ -14,7 +16,7 @@ function createWorker(options) {
 
   let tileCount = 0;
 
-  const absolutify = (url) => {
+  const absolutify = url => {
     if (url.startsWith("/")) return location.origin + url;
 
     if (url.startsWith("./")) {
@@ -26,7 +28,7 @@ function createWorker(options) {
 
   const resolvers = {};
 
-  worker.onmessage = function (evt) {
+  worker.addEventListener("message", function (evt) {
     const { type, data = {} } = evt.data;
 
     const { id } = data;
@@ -46,7 +48,7 @@ function createWorker(options) {
     } else {
       console.error("unknown type " + type);
     }
-  };
+  });
 
   worker.clearCache = function () {
     worker.postMessage({ type: CLEAR_CACHE });
@@ -60,7 +62,7 @@ function createWorker(options) {
   };
 
   worker.createTile = function (params) {
-    const { debug_level, timeout, url, ...rest } = params;
+    const { debug_level = 0, timeout, url, ...rest } = params;
     if (debug_level >= 1) console.log("[geotiff-tile-web-worker:createTile] starting with:", params);
 
     const id = Math.pow(Math.random(), Math.random()).toString().substring(2);
@@ -74,6 +76,7 @@ function createWorker(options) {
           data: {
             id,
             url: absolutify(url),
+            debug_level,
             ...rest
           }
         };

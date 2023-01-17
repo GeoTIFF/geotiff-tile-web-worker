@@ -11,7 +11,7 @@ const lru = new QuickLRU({ maxSize: 10 });
 
 function pick(obj, keys) {
   const result = {};
-  keys.forEach((key) => {
+  keys.forEach(key => {
     result[key] = obj[key];
   });
   return result;
@@ -19,14 +19,21 @@ function pick(obj, keys) {
 
 function getTransferList(data) {
   const depth = getDepth(data);
-  if (depth === 1) return [data.buffer];
+  if (depth === 1) {
+    if (!data.buffer) return [];
+    return [data.buffer];
+  }
 
-  if (depth === 2) return data.map((band) => band.buffer);
+  if (depth === 2) {
+    if (!data[0].buffer) return [];
+    return data.map(band => band.buffer);
+  }
 
   if (depth === 3) {
+    if (!data[0][0].buffer) return [];
     const transferList = [];
-    data.forEach((arr1) => {
-      arr1.forEach((arr2) => {
+    data.forEach(arr1 => {
+      arr1.forEach(arr2 => {
         transferList.push(arr2.buffer);
       });
     });
