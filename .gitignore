@@ -105,3 +105,4 @@ dist
 
 *.min.js
 pnpm-lock.yaml
+package-lock.json
