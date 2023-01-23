@@ -102,7 +102,11 @@ worker.createTile({
 
   // whether to use overviews if available
   // default is true
-  use_overview: false
+  use_overview: false,
+
+  // enable experimental turbocharging via proj-turbo
+  // default is false
+  turbo: false
 })
 
 // stop web worker

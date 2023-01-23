@@ -90,7 +90,8 @@ self.onmessage = async function onmessage(evt) {
         "tile_layout",
         "timed",
         "tile_width",
-        "use_overview"
+        "use_overview",
+        "turbo"
       ]);
       createTileOptions.geotiff = geotiff;
       if (debug_level >= 3) console.log("[geotiff-tile-web-worker:onmessage] createTileOptions:", createTileOptions);
