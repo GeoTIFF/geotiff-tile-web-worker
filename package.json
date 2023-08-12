@@ -50,8 +50,7 @@
     "geotiff-tile": "^0.16.1",
     "get-depth": "^0.0.3",
     "microlink": "^0.1.1",
-    "quick-lru": "^6.1.1",
-    "quick-resolve": "^0.0.1"
+    "quick-lru": "^6.1.1"
   },
   "devDependencies": {
     "@babel/core": "^7.22.10",
