@@ -106,3 +106,8 @@ dist
 *.min.js
 pnpm-lock.yaml
 package-lock.json
+data/*.tif*
+data/*.cog
+*bak*
+lib/*
+tmp

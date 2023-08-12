@@ -2,13 +2,44 @@
 <html>
   <head>
     <script src="./node_modules/flug/index.js"></script>
-    <script src="./index.min.js"></script>
+    <script src="./dist/geotiff-tile-web-worker.js"></script>
+    <script>
+      const original_error = console.error;
+      const original_log = console.log;
+
+      console.error = function() {
+        const div = document.createElement("div");
+        div.style.background = "darkred";
+        div.style.color = "white";
+        div.textContent = ">>> " + JSON.stringify(arguments[0]);
+        document.getElementById("log").appendChild(div);
+        original_log.apply(null, arguments);
+      }      
+      console.log = function() {
+        const div = document.createElement("div");
+        div.style.background = "rgb(25, 25, 75)";
+        div.style.color = "white";        
+        div.textContent = ">>> " + JSON.stringify(arguments[0]);
+        document.getElementById("log").appendChild(div);
+        original_log.apply(null, arguments);
+      }
+    </script>
   </head>
   <body>
+    <div id="log" style="font-size: 10px; white-space: pre-line;">
+
+    </div>
     <script>
       process = {
         env: {
-          // TEST_NAME: '[row][column][band]'
+          // TEST_NAME: 'worker.min.js',
+          // TEST_NAME: "iframe",
+          // TEST_NAME: "basic usage",
+          // TEST_NAME: "createTile",
+          // TEST_NAME: "bug",
+          // TEST_NAME: "function params",
+          // TEST_NAME: "gadas",
+          TEST_TIMED: true
         }
       }
     </script>
@@ -65,9 +96,11 @@
 
       test('iframe', async ({ eq }) => {
         try {
-          const worker = geotiff_tile_web_worker.createWorker({ iframe: true });
+          const worker = await geotiff_tile_web_worker.createWorker({ debugLevel: 0, iframe: true });
+          console.log("created worker:", worker);
 
           const created = await worker.createTile({ ...PARAMS, timed: false });
+          console.log("created tile");
           const { tile, height, width } = created;
 
           eq(tile[0][0].constructor.name, "Uint8Array");
@@ -79,27 +112,9 @@
         }
       });
 
-      test('worker.min.js', ({ eq }) => {
-        return new Promise((resolve, reject) => {
-          const worker = new Worker('./worker.min.js');
-          worker.onmessage = (evt) => {
-            const { tile, height, width } = evt.data.data;
-
-            eq(tile[0][0].constructor.name, "Uint8Array");
-            const data = three_to_four_bands({ height, width, tile })
-
-            displayTile({ tile: data, height, width});
-            resolve({ tile: data, height, width });
-          }
-          worker.postMessage({
-            type: "REQUEST_TILE",
-            data: PARAMS
-          });
-        });
-      });
-
       test('basic usage', async ({ eq }) => {
-        const worker = geotiff_tile_web_worker.createWorker();
+        const worker = await geotiff_tile_web_worker.createWorker();
+        console.log("created worker:", worker);
 
         const { tile, height, width } = await worker.createTile({
           url: "https://storage.googleapis.com/pdd-stac/disasters/hurricane-harvey/0831/20170831_172754_101c_3b_Visual.tif",
@@ -119,7 +134,7 @@
 
       test('createTile', async ({ eq }) => {
         try {
-          const worker = geotiff_tile_web_worker.createWorker();
+          const worker = await geotiff_tile_web_worker.createWorker();
 
           const created = await worker.createTile(PARAMS);
           const { tile, height, width } = created;
@@ -134,7 +149,7 @@
       });
 
       test("repeats", async ({ eq }) => {
-        const worker = geotiff_tile_web_worker.createWorker();
+        const worker = await geotiff_tile_web_worker.createWorker();
 
         // create first tile to start cache
         await worker.createTile(PARAMS);
@@ -142,7 +157,7 @@
         const created = await Promise.all(new Array(10).fill(0).map(it => worker.createTile({
           ...PARAMS,
           timed: true,
-          debug_level: 1
+          debug_level: 0
         })));
         created.forEach(({ tile, height, width }) => {
           eq(tile[0][0].constructor.name, "Uint8Array");
@@ -154,17 +169,17 @@
         window.createRepeatTile = function() {
           worker.createTile({
             ...PARAMS,
-            timed: true,
-            debug_level: 1
+            timed: false,
+            debug_level: 0
           });
         }
       });
 
       test('[row][column][band]', async ({ eq }) => {
         try {
-          const worker = geotiff_tile_web_worker.createWorker({ iframe: false });
+          const worker = await geotiff_tile_web_worker.createWorker({ iframe: false });
 
-          const created = await worker.createTile({ ...PARAMS, debug_level: 10, tile_layout: "[row][column][band]", timed: true });
+          const created = await worker.createTile({ ...PARAMS, debug_level: 0, tile_layout: "[row][column][band]", timed: false });
           console.log("created:", created);
           const { tile, height, width } = created;
 
@@ -180,6 +195,121 @@
         } catch (error) {
           throw error;
         }
+      });
+
+      test('bug', async ({ eq }) => {
+        try {
+          const worker = await geotiff_tile_web_worker.createWorker();
+
+          const tile_height = 60;
+          const tile_width = 128;
+          const params = {
+            "url": "https://maxar-ard-samples.s3.amazonaws.com/v3/australia_vineyards/50/213133231011/2019-10-07/10500100191CD200-visual.tif",
+            "bbox": [
+              12802284.9934276,
+              -4026091.1538368035,
+              12807176.963237852,
+              -4023811.776507525
+            ],
+            "bbox_srs": 3857,
+            "debug_level": 0,
+            "method": "near-vectorize",
+            "round": false,
+            "tile_array_types": [
+              "Array",
+              "Array",
+              "Array"
+            ],
+            tile_height,
+            "tile_layout": "[band][row][column]",
+            "tile_srs": 3857,
+            tile_width,
+            "timed": true,
+            "use_overview": true,
+            "turbo": false
+          };
+
+          const { tile, width, height } = await worker.createTile(params);
+
+          eq(tile[0][0].constructor.name, "Array");
+          eq(tile.length, 3);
+          eq(tile[0].length, height);
+          eq(tile[0].length, tile_height);
+          eq(tile[0][0].length, width);
+          eq(tile[0][0].length, tile_width);
+
+          const data = three_to_four_bands({ height, width, tile })
+
+          displayTile({ tile: data, height, width});
+        } catch (error) {
+          throw error;
+        }
+      });
+
+      test("gadas", async ({ eq }) => {
+        const worker = await geotiff_tile_web_worker.createWorker();
+        // worker.addEventListener("message", evt => console.log(evt));
+
+        const params = {
+            "url": "./data/gadas.tif",
+            "bbox": [7_698_736.858, 163_239.838, 10_066_450.246, 1_325_082.668],
+            "bbox_srs": 3857,
+            "debug_level": 0,        
+            "method": "max",
+            "round": false,
+            "tile_array_types": ["Uint8Array"],
+            "tile_height": 512,
+            "tile_layout": "[row,column,band]",
+            "tile_srs": 3857,
+            "tile_width": 512,
+            "timed": true,
+            "use_overview": true,
+            "turbo": true
+          };
+          // window.rerun = () => worker.createTile(params);
+
+          const { tile, width, height } = await worker.createTile(params);
+          
+          eq(tile.constructor.name, "Uint8Array");
+          eq(tile.length, height * width * 4);
+          displayTile({ tile, height, width });
+      });
+
+      test("function params", async ({ eq }) => {
+        const worker = await geotiff_tile_web_worker.createWorker();
+        // worker.addEventListener("message", evt => console.log(evt));
+
+        const params = {
+            "url": "./data/gadas.tif",
+            "bbox": [7_698_736.858, 163_239.838, 10_066_450.246, 1_325_082.668],
+            "bbox_srs": 3857,
+            "debug_level": 0,
+            "expr": ({ pixel }) => {
+              const [r, g, b] = pixel;
+              if (r < 50 && g < 50 && b > 200) {
+                return [255, 0, 0, 255];
+              } else {
+                return pixel;
+              }
+            },
+            "method": "near",
+            "round": false,
+            "tile_array_types": ["Uint8Array"],
+            "tile_height": 512,
+            "tile_layout": "[row,column,band]",
+            "tile_srs": 3857,
+            "tile_width": 512,
+            "timed": true,
+            "use_overview": true,
+            "turbo": true
+          };
+          // window.rerun = () => worker.createTile(params);
+
+          const { tile, width, height } = await worker.createTile(params);
+          
+          eq(tile.constructor.name, "Uint8Array");
+          eq(tile.length, height * width * 4);
+          displayTile({ tile, height, width });
       });
     </script>
   </body>
