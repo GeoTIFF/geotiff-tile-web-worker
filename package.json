@@ -22,7 +22,7 @@
     "build:worker:prod": "WEBPACK_ENTRY=./worker.mjs WEBPACK_MODE=production WEBPACK_OUTPUT_FILENAME=worker.prod.js WEBPACK_OUTPUT_PATH=\"$PWD/tmp\" webpack",
     "build:worker-string:dev": "mkdir -p ./lib && WORKER_FILENAME=$PWD/tmp/worker.dev.js WORKER_STRING_FILENAME=$PWD/lib/worker-string.dev.js node ./scripts/build-worker-string.js && node -r ./lib/worker-string.dev.js -e ''",
     "build:worker-string:prod": "mkdir -p ./lib && WORKER_FILENAME=$PWD/tmp/worker.prod.js WORKER_STRING_FILENAME=$PWD/lib/worker-string.prod.js node ./scripts/build-worker-string.js && node -r ./lib/worker-string.prod.js -e ''",
-    "format": "npx prettier --arrow-parens=avoid --print-width=160 --trailing-comma=none --write scripts template *.js *.mjs",
+    "format": "npx prettier --arrow-parens=avoid --print-width=160 --trailing-comma=none --write scripts template *.js *.mjs *.html",
     "clean": "rimraf dist lib tmp",
     "dev": "npm run build:dev && npm run serve",
     "prepublish": "npm run clean && npm run format && npm run build",
@@ -48,26 +48,26 @@
   "homepage": "https://github.com/GeoTIFF/geotiff-tile-web-worker#readme",
   "dependencies": {
     "frame-worker": "^0.3.0",
-    "geotiff": "^2.0.7",
-    "geotiff-tile": "^0.16.1",
+    "geotiff": "^2.1.0",
+    "geotiff-tile": "^0.17.2",
     "get-depth": "^0.0.3",
     "microlink": "^0.1.1",
-    "quick-lru": "^6.1.1"
+    "quick-lru": "^7.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.22.10",
+    "@babel/core": "^7.23.3",
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.18.6",
     "@babel/plugin-proposal-optional-chaining": "^7.21.0",
-    "@babel/plugin-transform-runtime": "^7.22.10",
-    "@babel/preset-env": "^7.22.10",
-    "@babel/runtime": "^7.22.10",
+    "@babel/plugin-transform-runtime": "^7.23.3",
+    "@babel/preset-env": "^7.23.3",
+    "@babel/runtime": "^7.23.2",
     "babel-loader": "^9.1.3",
     "envisage": "^0.1.0",
     "flug": "^2.6.0",
-    "rimraf": "^5.0.1",
+    "rimraf": "^5.0.5",
     "srvd": "^0.6.0",
     "terser-webpack-plugin": "^5.3.9",
-    "webpack": "^5.88.2",
+    "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4"
   }
 }

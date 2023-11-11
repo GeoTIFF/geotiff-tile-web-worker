@@ -45,12 +45,7 @@ async function createWorker(options) {
       const { debug_level, tile_layout = DEFAULT_TILE_LAYOUT, expr, tile_array_types } = rest;
 
       const time_before_create_tile = performance.now();
-      let {
-        tile: temp_tile,
-        height,
-        width,
-        extra
-      } = await obj.create_tile({
+      let { tile: temp_tile, height, width, extra } = await obj.create_tile({
         url: absolutify(url),
         ...rest,
         expr: undefined,
