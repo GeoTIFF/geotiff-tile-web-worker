@@ -44,6 +44,7 @@ async function create_tile(params) {
       "cutline_srs",
       "debug_level",
       "expr",
+      "geotiff_srs",
       "method",
       "pixel_depth",
       "round",
