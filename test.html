@@ -358,7 +358,11 @@
         const { tile, width, height } = await worker.createTile(params);
         eq(tile !== undefined, true);
         eq(tile.length, 1);
-        eq(tile[0].length, 2);
+        eq(tile[0].length, 256);
+
+        const data = three_to_four_bands({ height, width, tile: [tile[0], tile[0], tile[0]] });
+
+        displayTile({ id: "tile-srs-simple", tile: data, height, width });
       });
     </script>
   </body>
