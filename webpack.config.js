@@ -48,7 +48,7 @@ const config = {
               }
             ]
           ],
-          plugins: ["@babel/plugin-transform-runtime", "@babel/plugin-proposal-nullish-coalescing-operator", "@babel/plugin-proposal-optional-chaining"],
+          plugins: ["@babel/plugin-transform-runtime", "@babel/plugin-transform-nullish-coalescing-operator", "@babel/plugin-transform-optional-chaining"],
           // prevent https://github.com/babel/babel/issues/12731
           sourceType: "unambiguous"
         }
