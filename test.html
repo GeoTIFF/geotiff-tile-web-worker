@@ -38,6 +38,7 @@
           // TEST_NAME: "function params",
           // TEST_NAME: "gadas",
           // TEST_NAME: "simple srs",
+          // TEST_NAME: 'tile_srs="simple"',
           TEST_TIMED: true
         }
       };
@@ -333,6 +334,31 @@
         eq(tile.constructor.name, "Uint8Array");
         eq(tile.length, height * width * 4);
         displayTile({ id: "simple", tile, height, width });
+      });
+
+      test('tile_srs="simple"', async ({ eq }) => {
+        const worker = await geotiff_tile_web_worker.createWorker();
+
+        const params = {
+          bbox: [128, 656, 144, 672],
+          bbox_srs: "simple",
+          debug_level: 4,
+          method: "near-vectorize",
+          round: false,
+          tile_array_types: ["Array", "Array", "Array"],
+          tile_height: 256,
+          tile_layout: "[band][row][column]",
+          tile_srs: "simple",
+          tile_width: 256,
+          timed: true,
+          use_overview: true,
+          geotiff_srs: "simple",
+          url: "http://localhost:8080/data/vestfold.tif"
+        };
+        const { tile, width, height } = await worker.createTile(params);
+        eq(tile !== undefined, true);
+        eq(tile.length, 1);
+        eq(tile[0].length, 2);
       });
     </script>
   </body>
