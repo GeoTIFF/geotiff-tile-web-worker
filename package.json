@@ -51,7 +51,7 @@
     "geotiff": "^2.1.0",
     "geotiff-tile": "^0.18.3",
     "get-depth": "^0.0.3",
-    "microlink": "^0.1.2",
+    "microlink": "^0.2.0",
     "quick-lru": "^7.0.0",
     "xdim": "^1.10.1"
   },
