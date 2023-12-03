@@ -98,10 +98,8 @@
       test("iframe", async ({ eq }) => {
         try {
           const worker = await geotiff_tile_web_worker.createWorker({ debug_level: 0, iframe: true });
-          console.log("created worker:", worker);
 
           const created = await worker.createTile({ ...PARAMS, timed: false });
-          console.log("created tile", created);
           const { tile, height, width } = created;
 
           eq(tile[0][0].constructor.name, "Uint8Array");
@@ -115,7 +113,6 @@
 
       test("basic usage", async ({ eq }) => {
         const worker = await geotiff_tile_web_worker.createWorker();
-        console.log("created worker:", worker);
 
         const { tile, height, width } = await worker.createTile({
           url: "https://storage.googleapis.com/pdd-stac/disasters/hurricane-harvey/0831/20170831_172754_101c_3b_Visual.tif",
@@ -185,7 +182,6 @@
           const worker = await geotiff_tile_web_worker.createWorker({ iframe: false });
 
           const created = await worker.createTile({ ...PARAMS, debug_level: 0, tile_layout: "[row][column][band]", timed: false });
-          console.log("created:", created);
           const { tile, height, width } = created;
 
           eq(tile[0][0].constructor.name, "Uint8Array");
