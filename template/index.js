@@ -16,7 +16,7 @@ const absolutify = url => {
 };
 
 async function createWorker(options) {
-  const debug_level = typeof options === "object" && typeof options.debugLevel === "number" ? options.debugLevel : 0;
+  const debug_level = typeof options === "object" && typeof options.debug_level === "number" ? options.debug_level : 0;
   const useFrameWorker = typeof options === "object" && options.iframe === true;
   if (debug_level >= 1) console.log("[geotiff-tile-web-worker:createWorker] useFrameWorker is " + useFrameWorker);
   const WebWorker = useFrameWorker === false && typeof Worker === "function" ? Worker : FrameWorker;

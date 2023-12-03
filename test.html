@@ -97,11 +97,11 @@
 
       test("iframe", async ({ eq }) => {
         try {
-          const worker = await geotiff_tile_web_worker.createWorker({ debugLevel: 0, iframe: true });
+          const worker = await geotiff_tile_web_worker.createWorker({ debug_level: 0, iframe: true });
           console.log("created worker:", worker);
 
           const created = await worker.createTile({ ...PARAMS, timed: false });
-          console.log("created tile");
+          console.log("created tile", created);
           const { tile, height, width } = created;
 
           eq(tile[0][0].constructor.name, "Uint8Array");
@@ -342,7 +342,7 @@
         const params = {
           bbox: [128, 656, 144, 672],
           bbox_srs: "simple",
-          debug_level: 4,
+          debug_level: 0,
           method: "near-vectorize",
           round: false,
           tile_array_types: ["Array", "Array", "Array"],
