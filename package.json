@@ -1,6 +1,6 @@
 {
   "name": "geotiff-tile-web-worker",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Create a GeoTIFF Tile using an Inline Web Worker",
   "unpkg": "./dist/geotiff-tile-web-worker.min.js",
   "jsdelivr": "./dist/geotiff-tile-web-worker.min.js",
