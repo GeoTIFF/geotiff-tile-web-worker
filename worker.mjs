@@ -22,9 +22,10 @@ async function clear_cache({ debug_level = 0 } = {}) {
 }
 
 async function create_tile(params) {
+  const { debug_level } = params;
   try {
     // console.log("INSIDE WORKER, STARTING create_tile")
-    const { debug_level, url } = params;
+    const { url } = params;
     if (debug_level >= 1) console.log("[geotiff-tile-web-worker/worker.mjs:_create_tile] creating tile from " + url);
 
     if (lru.has(url)) {
@@ -69,7 +70,7 @@ async function create_tile(params) {
 
     return result;
   } catch (error) {
-    if (debug_level >= 1) console.error(error);
+    console.error(error);
     throw error;
   }
 }
