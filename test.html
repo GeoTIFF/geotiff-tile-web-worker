@@ -36,7 +36,7 @@
           // TEST_NAME: "createTile",
           // TEST_NAME: "bug",
           // TEST_NAME: "function params",
-          // TEST_NAME: "gadas",
+          // TEST_NAME: "gadas max",
           // TEST_NAME: "simple srs",
           // TEST_NAME: 'tile_srs="simple"',
           TEST_TIMED: true
@@ -105,7 +105,7 @@
           eq(tile[0][0].constructor.name, "Uint8Array");
           const data = three_to_four_bands({ height, width, tile });
 
-          displayTile({ tile: data, height, width });
+          displayTile({ id: "iframe", tile: data, height, width });
         } catch (error) {
           throw error;
         }
@@ -127,7 +127,7 @@
         eq(tile[0][0].length, width);
         const data = three_to_four_bands({ height, width, tile });
 
-        displayTile({ tile: data, height, width });
+        displayTile({ id: "basic usage", tile: data, height, width });
       });
 
       test("createTile", async ({ eq }) => {
@@ -140,7 +140,7 @@
           eq(tile[0][0].constructor.name, "Uint8Array");
           const data = three_to_four_bands({ height, width, tile });
 
-          displayTile({ tile: data, height, width });
+          displayTile({ id: "createTile", tile: data, height, width });
         } catch (error) {
           throw error;
         }
@@ -161,11 +161,11 @@
             })
           )
         );
-        created.forEach(({ tile, height, width }) => {
+        created.forEach(({ tile, height, width }, i) => {
           eq(tile[0][0].constructor.name, "Uint8Array");
           const data = three_to_four_bands({ height, width, tile });
 
-          displayTile({ tile: data, height, width });
+          displayTile({ id: "repeats" + i, tile: data, height, width });
         });
 
         window.createRepeatTile = function () {
@@ -191,7 +191,7 @@
 
           const data = tile.map(row => row.map(column => [...column, 255])).flat(2);
 
-          displayTile({ tile: data, height, width });
+          displayTile({ id: "[row][column][band]", tile: data, height, width });
         } catch (error) {
           throw error;
         }
@@ -231,13 +231,13 @@
 
           const data = three_to_four_bands({ height, width, tile });
 
-          displayTile({ tile: data, height, width });
+          displayTile({ id: "bug", tile: data, height, width });
         } catch (error) {
           throw error;
         }
       });
 
-      test("gadas", async ({ eq }) => {
+      test("gadas max", async ({ eq }) => {
         const worker = await geotiff_tile_web_worker.createWorker();
         // worker.addEventListener("message", evt => console.log(evt));
 
@@ -263,7 +263,7 @@
 
         eq(tile.constructor.name, "Uint8Array");
         eq(tile.length, height * width * 4);
-        displayTile({ tile, height, width });
+        displayTile({ id: "gadas max", tile, height, width });
       });
 
       test("function params", async ({ eq }) => {
@@ -300,7 +300,7 @@
 
         eq(tile.constructor.name, "Uint8Array");
         eq(tile.length, height * width * 4);
-        displayTile({ tile, height, width });
+        displayTile({ id: "function params", tile, height, width });
       });
 
       test("simple srs", async ({ eq }) => {
@@ -329,7 +329,7 @@
 
         eq(tile.constructor.name, "Uint8Array");
         eq(tile.length, height * width * 4);
-        displayTile({ id: "simple", tile, height, width });
+        displayTile({ id: "simple srs", tile, height, width });
       });
 
       test('tile_srs="simple"', async ({ eq }) => {
