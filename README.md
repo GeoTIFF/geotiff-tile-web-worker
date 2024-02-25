@@ -67,6 +67,9 @@ worker.createTile({
   // default is 0
   debug_level: 0,
 
+  // over-ride no data value set in geotiff metadata
+  geotiff_no_data: 0,
+
   // resampling method
   // default is "near"
   method: "max",
@@ -95,6 +98,9 @@ worker.createTile({
   // tile height in pixel
   // default is 256
   tile_height: 512,
+
+  // over-ride default "no data" value in output tile
+  tile_no_data: 0,
 
   // width of tile in pixels
   // default is 256
